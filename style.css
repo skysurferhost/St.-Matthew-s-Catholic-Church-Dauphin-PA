@@ -1007,6 +1007,18 @@ body.view-control-buttons .viewControlButton {
   background-image: none !important;
 }
 
+
+/* Sky Surfer optional idle-hide behavior for next-scene navigation arrows. */
+.link-hotspot {
+  opacity: 1;
+  -webkit-transition: opacity .24s ease, -webkit-transform .18s ease !important;
+  transition: opacity .24s ease, transform .18s ease !important;
+}
+body.ss-nav-hotspots-idle .link-hotspot {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 /* Clean transparent autorotate control. Keep Marzipano's original white video-style play/pause artwork. */
 #autorotateToggle { background:transparent !important; background-color:transparent !important; border:0 !important; box-shadow:none !important; top:0 !important; right:40px !important; width:40px !important; height:40px !important; padding:0 !important; box-sizing:border-box !important; }
 #fullscreenToggle { top:0 !important; right:0 !important; width:40px !important; height:40px !important; box-sizing:border-box !important; }
