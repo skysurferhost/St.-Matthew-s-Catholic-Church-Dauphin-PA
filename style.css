@@ -1008,15 +1008,40 @@ body.view-control-buttons .viewControlButton {
 }
 
 
-/* Sky Surfer optional idle-hide behavior for next-scene navigation arrows. */
-.link-hotspot {
+/* Sky Surfer optional idle-hide behavior.
+   IMPORTANT: opacity is the only animated hotspot property. Marzipano updates
+   hotspot transforms continuously while the panorama moves, so transform must
+   never be transitioned here or arrows can lag/drift behind their true position. */
+.link-hotspot,
+#titleBar,
+#sceneListToggle,
+#autorotateToggle,
+#fullscreenToggle,
+.viewControlButton,
+.ss-audio-player {
   opacity: 1;
-  -webkit-transition: opacity .24s ease, -webkit-transform .18s ease !important;
-  transition: opacity .24s ease, transform .18s ease !important;
+  -webkit-transition: opacity .24s ease !important;
+  transition: opacity .24s ease !important;
 }
-body.ss-nav-hotspots-idle .link-hotspot {
+
+/* Hide next-scene arrows plus the normal top/bottom tour chrome after inactivity. */
+body.ss-nav-hotspots-idle .link-hotspot,
+body.ss-nav-hotspots-idle #titleBar,
+body.ss-nav-hotspots-idle #sceneListToggle,
+body.ss-nav-hotspots-idle #autorotateToggle,
+body.ss-nav-hotspots-idle #fullscreenToggle,
+body.ss-nav-hotspots-idle .viewControlButton,
+body.ss-nav-hotspots-idle .ss-audio-player {
   opacity: 0 !important;
   pointer-events: none !important;
+}
+
+/* Keep the opened scene list itself visible and usable. Movement/touch inside
+   it counts as activity and restores the hidden controls immediately. */
+body.ss-nav-hotspots-idle #sceneList,
+body.ss-nav-hotspots-idle #sceneList .scenes,
+body.ss-nav-hotspots-idle #sceneList .scene {
+  opacity: 1 !important;
 }
 
 /* Clean transparent autorotate control. Keep Marzipano's original white video-style play/pause artwork. */

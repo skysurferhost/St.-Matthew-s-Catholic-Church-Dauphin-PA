@@ -258,7 +258,7 @@
     }
   });
 
-  // SKY SURFER: hide navigation arrows after viewer inactivity.
+  // SKY SURFER: hide navigation arrows and tour controls after viewer inactivity.
   var ssNavIdleDelay = 3000;
   var ssNavLastActivity = Date.now();
   var ssNavIdleTimer = null;
