@@ -249,7 +249,9 @@
     }
   }
 
+  // SKY_SURFER_TOOLS_BUILD_V7_2
   // SKY_SURFER_PREVIEW_ENHANCER_V33
+  // SKY_SURFER_SPECIAL_PREVIEW_MODE=OFF
   // Touch behavior: tap away from a link hotspot to close any open destination preview.
   document.addEventListener('click', function() {
     var openPreviews = document.querySelectorAll('.link-hotspot.preview-visible');
@@ -258,37 +260,84 @@
     }
   });
 
-  // SKY SURFER v6.4: robust idle UI compatibility layer.
+  // SKY SURFER v7.2: deterministic idle UI monitor.
   var ssNavIdleDelay = 3000;
-  var ssNavIdleTimer = null;
+  var ssNavLastActivityAt = Date.now();
+  var ssNavIdleState = false;
+  var ssNavLastPointerX = null;
+  var ssNavLastPointerY = null;
+  var ssNavMoveAccumulator = 0;
 
   function ssNavApplyIdleState(isIdle) {
     if (!document.body) return;
-    document.body.classList.toggle('ss-nav-hotspots-idle', !!isIdle);
+    ssNavIdleState = !!isIdle;
+    document.body.classList.toggle('ss-nav-hotspots-idle', ssNavIdleState);
+    // Desktop previews are native CSS :hover, so no persistent preview class needs cleanup.
   }
 
-  function ssNavScheduleHide() {
-    if (ssNavIdleTimer !== null) {
-      window.clearTimeout(ssNavIdleTimer);
+  function ssNavRecordActivity() {
+    ssNavLastActivityAt = Date.now();
+    ssNavMoveAccumulator = 0;
+    if (ssNavIdleState) ssNavApplyIdleState(false);
+  }
+
+  function ssNavPointerPoint(event) {
+    if (!event) return null;
+    if (event.touches && event.touches.length) {
+      return { x:Number(event.touches[0].clientX), y:Number(event.touches[0].clientY) };
     }
-    ssNavIdleTimer = window.setTimeout(function() {
-      ssNavIdleTimer = null;
-      ssNavApplyIdleState(true);
-    }, ssNavIdleDelay);
+    if (event.changedTouches && event.changedTouches.length) {
+      return { x:Number(event.changedTouches[0].clientX), y:Number(event.changedTouches[0].clientY) };
+    }
+    if (typeof event.clientX === 'number' && typeof event.clientY === 'number') {
+      return { x:Number(event.clientX), y:Number(event.clientY) };
+    }
+    return null;
   }
 
-  function ssNavMarkActivity(event) {
-    // Ignore script-generated events. Only genuine visitor interaction should
-    // keep the interface awake indefinitely.
+  function ssNavHandleMove(event) {
+    if (!event || event.isTrusted === false) return;
+
+    var dx = 0;
+    var dy = 0;
+    if (typeof event.movementX === 'number' && typeof event.movementY === 'number') {
+      dx = event.movementX;
+      dy = event.movementY;
+    }
+
+    var point = ssNavPointerPoint(event);
+    if ((!dx && !dy) && point && Number.isFinite(point.x) && Number.isFinite(point.y) &&
+        ssNavLastPointerX !== null && ssNavLastPointerY !== null) {
+      dx = point.x - ssNavLastPointerX;
+      dy = point.y - ssNavLastPointerY;
+    }
+
+    if (point && Number.isFinite(point.x) && Number.isFinite(point.y)) {
+      ssNavLastPointerX = point.x;
+      ssNavLastPointerY = point.y;
+    }
+
+    var distance = Math.hypot(dx, dy);
+    if (!Number.isFinite(distance) || distance <= 0) return;
+
+    // Require a few pixels of accumulated physical pointer motion. This ignores
+    // stationary-cursor target changes and tiny rendering/layout jitter.
+    ssNavMoveAccumulator += distance;
+    if (ssNavMoveAccumulator >= 3) ssNavRecordActivity();
+  }
+
+  function ssNavHandleImmediateActivity(event) {
     if (event && event.isTrusted === false) return;
-    ssNavApplyIdleState(false);
-    ssNavScheduleHide();
+    var point = ssNavPointerPoint(event);
+    if (point && Number.isFinite(point.x) && Number.isFinite(point.y)) {
+      ssNavLastPointerX = point.x;
+      ssNavLastPointerY = point.y;
+    }
+    ssNavRecordActivity();
   }
 
   function ssNavMarkIdleElement(element) {
     if (!element || !element.classList) return;
-    // Deliberately-open content remains readable: scene list and information
-    // panels are not marked as idle chrome.
     if (element.id === 'sceneList' ||
         element.classList.contains('scenes') ||
         element.classList.contains('scene') ||
@@ -312,8 +361,6 @@
       '.player#player'
     ];
 
-    // Include the root itself when it matches; this matters for dynamically
-    // appended legacy controls such as the Joyful Mystery #player element.
     if (root && root.matches) {
       for (var r = 0; r < selectors.length; r++) {
         try {
@@ -330,12 +377,8 @@
     }
   }
 
-  // Mark controls that already exist.
   ssNavCollectIdleElements(document);
 
-  // Older customized projects sometimes append their own player or controls
-  // after Marzipano's main document. Observe new DOM nodes and mark recognized
-  // controls automatically instead of requiring a special-project checkbox.
   if (window.MutationObserver && document.documentElement) {
     var ssNavObserver = new MutationObserver(function(records) {
       for (var i = 0; i < records.length; i++) {
@@ -351,31 +394,28 @@
   var ssNavPassiveOptions = { capture:true, passive:true };
   var ssNavActiveOptions = { capture:true };
 
-  // Pointer Events cover modern desktop + phone/tablet in one path.
   if (window.PointerEvent) {
-    document.addEventListener('pointermove', ssNavMarkActivity, ssNavPassiveOptions);
-    document.addEventListener('pointerdown', ssNavMarkActivity, ssNavPassiveOptions);
+    document.addEventListener('pointermove', ssNavHandleMove, ssNavPassiveOptions);
+    document.addEventListener('pointerdown', ssNavHandleImmediateActivity, ssNavPassiveOptions);
   } else {
-    document.addEventListener('mousemove', ssNavMarkActivity, ssNavPassiveOptions);
-    document.addEventListener('mousedown', ssNavMarkActivity, ssNavPassiveOptions);
-    document.addEventListener('touchstart', ssNavMarkActivity, ssNavPassiveOptions);
-    document.addEventListener('touchmove', ssNavMarkActivity, ssNavPassiveOptions);
+    document.addEventListener('mousemove', ssNavHandleMove, ssNavPassiveOptions);
+    document.addEventListener('mousedown', ssNavHandleImmediateActivity, ssNavPassiveOptions);
+    document.addEventListener('touchstart', ssNavHandleImmediateActivity, ssNavPassiveOptions);
+    document.addEventListener('touchmove', ssNavHandleMove, ssNavPassiveOptions);
   }
 
-  document.addEventListener('wheel', ssNavMarkActivity, ssNavPassiveOptions);
-  document.addEventListener('click', ssNavMarkActivity, ssNavPassiveOptions);
-  document.addEventListener('keydown', ssNavMarkActivity, ssNavActiveOptions);
-  document.addEventListener('gesturestart', ssNavMarkActivity, ssNavPassiveOptions);
-  document.addEventListener('gesturechange', ssNavMarkActivity, ssNavPassiveOptions);
+  document.addEventListener('wheel', ssNavHandleImmediateActivity, ssNavPassiveOptions);
+  document.addEventListener('click', ssNavHandleImmediateActivity, ssNavPassiveOptions);
+  document.addEventListener('keydown', ssNavHandleImmediateActivity, ssNavActiveOptions);
+  document.addEventListener('gesturestart', ssNavHandleImmediateActivity, ssNavPassiveOptions);
+  document.addEventListener('gesturechange', ssNavHandleImmediateActivity, ssNavPassiveOptions);
 
-  window.addEventListener('resize', ssNavMarkActivity, { passive:true });
-  window.addEventListener('orientationchange', ssNavMarkActivity, { passive:true });
-  document.addEventListener('visibilitychange', function(event) {
-    if (!document.hidden) ssNavMarkActivity(event);
-  }, { passive:true });
-
-  // Start visible, then restart the full delay after every genuine interaction.
-  ssNavMarkActivity();
+  // Do not treat resize, orientation, focus, visibility, or autorotation as visitor
+  // interaction. Only actual user input should keep the controls awake.
+  window.setInterval(function() {
+    var shouldBeIdle = (Date.now() - ssNavLastActivityAt) >= ssNavIdleDelay;
+    if (shouldBeIdle !== ssNavIdleState) ssNavApplyIdleState(shouldBeIdle);
+  }, 200);
 
   function createLinkHotspotElement(hotspot) {
 
@@ -445,6 +485,11 @@
 
     previewCard.appendChild(previewImage);
     previewCard.appendChild(previewTitle);
+    previewCard.addEventListener('click', function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      switchScene(findSceneById(hotspot.target));
+    });
     tooltip.appendChild(previewCard);
 
     wrapper.appendChild(icon);
