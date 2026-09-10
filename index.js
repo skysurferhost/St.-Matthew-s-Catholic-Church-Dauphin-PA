@@ -249,7 +249,7 @@
     }
   }
 
-  // SKY_SURFER_TOOLS_BUILD_V7_2
+  // SKY_SURFER_TOOLS_BUILD_V7_3
   // SKY_SURFER_PREVIEW_ENHANCER_V33
   // SKY_SURFER_SPECIAL_PREVIEW_MODE=OFF
   // Touch behavior: tap away from a link hotspot to close any open destination preview.
@@ -260,7 +260,7 @@
     }
   });
 
-  // SKY SURFER v7.2: deterministic idle UI monitor.
+  // SKY SURFER v7.3: deterministic idle UI monitor.
   var ssNavIdleDelay = 3000;
   var ssNavLastActivityAt = Date.now();
   var ssNavIdleState = false;
@@ -460,6 +460,45 @@
       switchScene(findSceneById(hotspot.target));
     });
 
+    var ssStandardPreviewHideTimer = null;
+
+    function ssStandardPreviewShow() {
+      if (ssStandardPreviewHideTimer !== null) {
+        window.clearTimeout(ssStandardPreviewHideTimer);
+        ssStandardPreviewHideTimer = null;
+      }
+
+      var openStandardPreviews = document.querySelectorAll('.link-hotspot.ss-standard-preview-visible');
+      for (var s = 0; s < openStandardPreviews.length; s++) {
+        if (openStandardPreviews[s] !== wrapper) {
+          openStandardPreviews[s].classList.remove('ss-standard-preview-visible');
+        }
+      }
+
+      wrapper.classList.add('ss-standard-preview-visible');
+    }
+
+    function ssStandardPreviewScheduleHide() {
+      if (ssStandardPreviewHideTimer !== null) {
+        window.clearTimeout(ssStandardPreviewHideTimer);
+      }
+
+      // Short grace period so the cursor can travel from the navigation arrow
+      // across the tooltip gap and onto the clickable preview card.
+      ssStandardPreviewHideTimer = window.setTimeout(function() {
+        ssStandardPreviewHideTimer = null;
+
+        // If the cursor reached either the hotspot or its preview card, keep it open.
+        if (wrapper.matches(':hover')) return;
+
+        wrapper.classList.remove('ss-standard-preview-visible');
+      }, 500);
+    }
+
+    wrapper.addEventListener('mouseenter', ssStandardPreviewShow);
+    wrapper.addEventListener('mouseleave', ssStandardPreviewScheduleHide);
+
+
     // Prevent touch and scroll events from reaching the parent element.
     // This prevents the view control logic from interfering with the hotspot.
     stopTouchAndScrollEventPropagation(wrapper);
@@ -485,6 +524,22 @@
 
     previewCard.appendChild(previewImage);
     previewCard.appendChild(previewTitle);
+    previewCard.addEventListener('mouseenter', function() {
+      if (wrapper.classList.contains('ss-standard-preview-visible')) {
+        if (typeof ssStandardPreviewHideTimer !== 'undefined' && ssStandardPreviewHideTimer !== null) {
+          window.clearTimeout(ssStandardPreviewHideTimer);
+          ssStandardPreviewHideTimer = null;
+        }
+      }
+    });
+
+    previewCard.addEventListener('mouseleave', function() {
+      if (wrapper.classList.contains('ss-standard-preview-visible') &&
+          typeof ssStandardPreviewScheduleHide === 'function') {
+        ssStandardPreviewScheduleHide();
+      }
+    });
+
     previewCard.addEventListener('click', function(event) {
       event.preventDefault();
       event.stopPropagation();
