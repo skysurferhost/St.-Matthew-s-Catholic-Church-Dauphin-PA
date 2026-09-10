@@ -249,7 +249,7 @@
     }
   }
 
-  // SKY_SURFER_TOOLS_BUILD_V7_3
+  // SKY_SURFER_TOOLS_BUILD_V7_4
   // SKY_SURFER_PREVIEW_ENHANCER_V33
   // SKY_SURFER_SPECIAL_PREVIEW_MODE=OFF
   // Touch behavior: tap away from a link hotspot to close any open destination preview.
@@ -260,7 +260,7 @@
     }
   });
 
-  // SKY SURFER v7.3: deterministic idle UI monitor.
+  // SKY SURFER v7.4: deterministic idle UI monitor.
   var ssNavIdleDelay = 3000;
   var ssNavLastActivityAt = Date.now();
   var ssNavIdleState = false;

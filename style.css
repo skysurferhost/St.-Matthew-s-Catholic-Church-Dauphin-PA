@@ -830,7 +830,7 @@ body.view-control-buttons .viewControlButton {
 }
 
 
-/* SKY_SURFER_TOOLS_BUILD_V7_3 */
+/* SKY_SURFER_TOOLS_BUILD_V7_4 */
 /* ================================================================
    SKY_SURFER_PREVIEW_ENHANCER_V33
    Isolated Sky Surfer destination preview.
@@ -904,8 +904,14 @@ body.view-control-buttons .viewControlButton {
   -ms-transform: translateX(-8px);
   -webkit-transform: translateX(-8px);
   transform: translateX(-8px);
-  -webkit-transition: opacity .2s ease, -webkit-transform .2s ease !important;
-  transition: opacity .2s ease, transform .2s ease !important;
+  -webkit-transition:
+    opacity .65s ease,
+    visibility 0s linear .65s,
+    -webkit-transform .42s ease !important;
+  transition:
+    opacity .65s ease,
+    visibility 0s linear .65s,
+    transform .42s ease !important;
 }
 
 .ss-scene-preview-image {
@@ -945,18 +951,6 @@ body.view-control-buttons .viewControlButton {
   box-sizing: border-box !important;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .no-touch .link-hotspot:hover .ss-scene-preview-card {
-    opacity: 1 !important;
-    visibility: visible !important;
-    pointer-events: auto !important;
-    cursor: pointer !important;
-    -ms-transform: translateX(0);
-    -webkit-transform: translateX(0);
-    transform: translateX(0);
-  }
-}
-
 .link-hotspot {
   touch-action: manipulation;
 }
@@ -992,6 +986,14 @@ body.view-control-buttons .viewControlButton {
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
+    -webkit-transition:
+      opacity .18s ease,
+      visibility 0s linear 0s,
+      -webkit-transform .18s ease !important;
+    transition:
+      opacity .18s ease,
+      visibility 0s linear 0s,
+      transform .18s ease !important;
     -ms-transform: translateY(0);
     -webkit-transform: translateY(0);
     transform: translateY(0);
@@ -1020,6 +1022,14 @@ body.view-control-buttons .viewControlButton {
     visibility: visible !important;
     pointer-events: auto !important;
     cursor: pointer !important;
+    -webkit-transition:
+      opacity .18s ease,
+      visibility 0s linear 0s,
+      -webkit-transform .18s ease !important;
+    transition:
+      opacity .18s ease,
+      visibility 0s linear 0s,
+      transform .18s ease !important;
     -ms-transform: translateX(0);
     -webkit-transform: translateX(0);
     transform: translateX(0);
@@ -1028,10 +1038,22 @@ body.view-control-buttons .viewControlButton {
   /* Special Joyful/custom mode MUST NOT reveal on CSS hover alone.
      This higher-specificity rule intentionally overrides any older/custom
      .link-hotspot:hover preview rule that may already exist in the project. */
+  body.ss-special-preview-mode .ss-scene-preview-anchor::before {
+    pointer-events: none !important;
+  }
+
   body.ss-special-preview-mode.no-touch .link-hotspot:hover .ss-scene-preview-card {
     opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
+    -webkit-transition:
+      opacity .65s ease,
+      visibility 0s linear .65s,
+      -webkit-transform .42s ease !important;
+    transition:
+      opacity .65s ease,
+      visibility 0s linear .65s,
+      transform .42s ease !important;
     -ms-transform: translateX(-8px) !important;
     -webkit-transform: translateX(-8px) !important;
     transform: translateX(-8px) !important;
@@ -1042,6 +1064,14 @@ body.view-control-buttons .viewControlButton {
     visibility: visible !important;
     pointer-events: auto !important;
     cursor: pointer !important;
+    -webkit-transition:
+      opacity .18s ease,
+      visibility 0s linear 0s,
+      -webkit-transform .18s ease !important;
+    transition:
+      opacity .18s ease,
+      visibility 0s linear 0s,
+      transform .18s ease !important;
     -ms-transform: translateX(0) !important;
     -webkit-transform: translateX(0) !important;
     transform: translateX(0) !important;
@@ -1130,7 +1160,7 @@ body.view-control-buttons .viewControlButton {
 }
 
 
-/* Sky Surfer v7.3 robust idle interface.
+/* Sky Surfer v7.4 robust idle interface.
    Runtime JS marks standard and recognized legacy/custom controls with
    .ss-idle-ui. Only opacity is animated; hotspot transforms remain untouched. */
 .ss-idle-ui {
