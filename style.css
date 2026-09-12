@@ -830,7 +830,7 @@ body.view-control-buttons .viewControlButton {
 }
 
 
-/* SKY_SURFER_TOOLS_BUILD_V7_4 */
+/* SKY_SURFER_TOOLS_BUILD_V8_4 */
 /* ================================================================
    SKY_SURFER_PREVIEW_ENHANCER_V33
    Isolated Sky Surfer destination preview.
@@ -914,21 +914,40 @@ body.view-control-buttons .viewControlButton {
     transform .42s ease !important;
 }
 
-.ss-scene-preview-image {
+.ss-scene-preview-media {
   display: block !important;
+  position: relative !important;
   width: 100% !important;
   min-width: 0 !important;
   max-width: 100% !important;
+  aspect-ratio: 16 / 9 !important;
   height: auto !important;
-  min-height: 0 !important;
-  max-height: none !important;
-  aspect-ratio: auto !important;
-  object-fit: contain !important;
-  object-position: center !important;
   margin: 0 !important;
   padding: 0 !important;
   border: 0 !important;
   border-radius: 8px !important;
+  overflow: hidden !important;
+  background: #111 !important;
+  box-sizing: border-box !important;
+}
+
+.ss-scene-preview-image {
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  max-height: 100% !important;
+  aspect-ratio: auto !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
   box-sizing: border-box !important;
 }
 
@@ -1014,52 +1033,9 @@ body.view-control-buttons .viewControlButton {
 }
 
 
-/* Standard desktop behavior. */
+/* Corrected v8.2 desktop behavior: physical mouse movement only. */
 @media (hover: hover) and (pointer: fine) {
-  body:not(.ss-special-preview-mode) .link-hotspot.ss-standard-preview-visible .ss-scene-preview-card,
-  body:not(.ss-special-preview-mode).no-touch .link-hotspot:hover .ss-scene-preview-card {
-    opacity: 1 !important;
-    visibility: visible !important;
-    pointer-events: auto !important;
-    cursor: pointer !important;
-    -webkit-transition:
-      opacity .18s ease,
-      visibility 0s linear 0s,
-      -webkit-transform .18s ease !important;
-    transition:
-      opacity .18s ease,
-      visibility 0s linear 0s,
-      transform .18s ease !important;
-    -ms-transform: translateX(0);
-    -webkit-transform: translateX(0);
-    transform: translateX(0);
-  }
-
-  /* Special Joyful/custom mode MUST NOT reveal on CSS hover alone.
-     This higher-specificity rule intentionally overrides any older/custom
-     .link-hotspot:hover preview rule that may already exist in the project. */
-  body.ss-special-preview-mode .ss-scene-preview-anchor::before {
-    pointer-events: none !important;
-  }
-
-  body.ss-special-preview-mode.no-touch .link-hotspot:hover .ss-scene-preview-card {
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-    -webkit-transition:
-      opacity .65s ease,
-      visibility 0s linear .65s,
-      -webkit-transform .42s ease !important;
-    transition:
-      opacity .65s ease,
-      visibility 0s linear .65s,
-      transform .42s ease !important;
-    -ms-transform: translateX(-8px) !important;
-    -webkit-transform: translateX(-8px) !important;
-    transform: translateX(-8px) !important;
-  }
-
-  body.ss-special-preview-mode .link-hotspot.ss-special-preview-visible .ss-scene-preview-card {
+  .link-hotspot.ss-standard-preview-visible .ss-scene-preview-card {
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
@@ -1079,6 +1055,7 @@ body.view-control-buttons .viewControlButton {
 }
 
 /* Navigation arrow style: Classic Marzipano */
+/* Information icon style: Original Marzipano */
 /* Fullscreen button style: Classic Marzipano */
 
 /* Keep Marzipano's normal title-bar look, but let its own bar background
@@ -1160,7 +1137,7 @@ body.view-control-buttons .viewControlButton {
 }
 
 
-/* Sky Surfer v7.4 robust idle interface.
+/* Sky Surfer v8.2 robust idle interface.
    Runtime JS marks standard and recognized legacy/custom controls with
    .ss-idle-ui. Only opacity is animated; hotspot transforms remain untouched. */
 .ss-idle-ui {
@@ -1171,6 +1148,7 @@ body.view-control-buttons .viewControlButton {
 body.ss-nav-hotspots-idle .ss-idle-ui,
 body.ss-nav-hotspots-idle .link-hotspot,
 body.ss-nav-hotspots-idle #titleBar,
+body.ss-nav-hotspots-idle #sceneList,
 body.ss-nav-hotspots-idle #sceneListToggle,
 body.ss-nav-hotspots-idle #autorotateToggle,
 body.ss-nav-hotspots-idle #fullscreenToggle,
@@ -1194,10 +1172,8 @@ body.ss-nav-hotspots-idle * {
   cursor: none !important;
 }
 
-/* Deliberately-open reading/navigation surfaces remain visible. */
-body.ss-nav-hotspots-idle #sceneList,
-body.ss-nav-hotspots-idle #sceneList .scenes,
-body.ss-nav-hotspots-idle #sceneList .scene,
+/* An opened information panel remains readable while ordinary navigation UI,
+   including an opened scene list, fades away. */
 body.ss-nav-hotspots-idle .info-hotspot,
 body.ss-nav-hotspots-idle .info-hotspot-modal {
   opacity: 1 !important;

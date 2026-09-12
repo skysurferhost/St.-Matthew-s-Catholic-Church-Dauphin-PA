@@ -127,6 +127,28 @@
   // Set handler for autorotate toggle.
   autorotateToggleElement.addEventListener('click', toggleAutorotate);
 
+  // SKY_SURFER_SPACEBAR_AUTOROTATE_V1
+  document.addEventListener('keydown', function(event) {
+    if (!event || event.repeat || event.defaultPrevented) return;
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+    var isSpace = event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar';
+    if (!isSpace) return;
+
+    var target = event.target;
+    if (target) {
+      var tagName = String(target.tagName || '').toUpperCase();
+      if (target.isContentEditable ||
+          tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT' ||
+          tagName === 'BUTTON' || tagName === 'A') {
+        return;
+      }
+    }
+
+    event.preventDefault();
+    toggleAutorotate();
+  });
+
   // Set up fullscreen mode, if supported.
   if (screenfull.enabled && data.settings.fullscreenButton) {
     document.body.classList.add('fullscreen-enabled');
@@ -249,8 +271,9 @@
     }
   }
 
-  // SKY_SURFER_TOOLS_BUILD_V7_4
+  // SKY_SURFER_TOOLS_BUILD_V8_4
   // SKY_SURFER_PREVIEW_ENHANCER_V33
+  // SKY_SURFER_PROJECT_COMPATIBILITY=STANDARD
   // SKY_SURFER_SPECIAL_PREVIEW_MODE=OFF
   // Touch behavior: tap away from a link hotspot to close any open destination preview.
   document.addEventListener('click', function() {
@@ -260,7 +283,7 @@
     }
   });
 
-  // SKY SURFER v7.4: deterministic idle UI monitor.
+  // SKY SURFER v7.6: deterministic idle UI monitor.
   var ssNavIdleDelay = 3000;
   var ssNavLastActivityAt = Date.now();
   var ssNavIdleState = false;
@@ -272,7 +295,7 @@
     if (!document.body) return;
     ssNavIdleState = !!isIdle;
     document.body.classList.toggle('ss-nav-hotspots-idle', ssNavIdleState);
-    // Desktop previews are native CSS :hover, so no persistent preview class needs cleanup.
+    // Desktop previews are class-driven by verified physical mouse movement; the class is cleared below when needed.
   }
 
   function ssNavRecordActivity() {
@@ -338,10 +361,9 @@
 
   function ssNavMarkIdleElement(element) {
     if (!element || !element.classList) return;
-    if (element.id === 'sceneList' ||
-        element.classList.contains('scenes') ||
-        element.classList.contains('scene') ||
-        element.classList.contains('info-hotspot') ||
+    // Keep an opened information panel readable, but allow an opened scene list
+    // to fade with the rest of the tour controls during the idle presentation state.
+    if (element.classList.contains('info-hotspot') ||
         element.classList.contains('info-hotspot-modal')) return;
     element.classList.add('ss-idle-ui');
   }
@@ -351,6 +373,7 @@
     var selectors = [
       '.link-hotspot',
       '#titleBar',
+      '#sceneList',
       '#sceneListToggle',
       '#autorotateToggle',
       '#fullscreenToggle',
@@ -436,6 +459,7 @@
       icon.style[property] = 'rotate(' + hotspot.rotation + 'rad)';
     }
 
+    // Add click event handler.
     // Desktop: click navigates normally.
     // Phone/tablet: first tap shows the destination preview; second tap navigates.
     wrapper.addEventListener('click', function(event) {
@@ -483,14 +507,9 @@
         window.clearTimeout(ssStandardPreviewHideTimer);
       }
 
-      // Short grace period so the cursor can travel from the navigation arrow
-      // across the tooltip gap and onto the clickable preview card.
       ssStandardPreviewHideTimer = window.setTimeout(function() {
         ssStandardPreviewHideTimer = null;
-
-        // If the cursor reached either the hotspot or its preview card, keep it open.
         if (wrapper.matches(':hover')) return;
-
         wrapper.classList.remove('ss-standard-preview-visible');
       }, 500);
     }
@@ -503,6 +522,7 @@
     // This prevents the view control logic from interfering with the hotspot.
     stopTouchAndScrollEventPropagation(wrapper);
 
+    // Create tooltip element.
     // SKY SURFER: isolated destination preview. This intentionally does NOT
     // reuse Marzipano's .link-hotspot-tooltip class so older/custom project CSS
     // cannot crop, resize, or distort the 16:9 destination card.
@@ -514,15 +534,19 @@
     var previewCard = document.createElement('div');
     previewCard.classList.add('ss-scene-preview-card');
 
+    var previewMedia = document.createElement('div');
+    previewMedia.classList.add('ss-scene-preview-media');
+
     var previewImage = document.createElement('img');
     previewImage.classList.add('ss-scene-preview-image');
     previewImage.src = 'thumbnails/' + hotspot.target + '.jpg';
     previewImage.alt = targetScene.name;
+    previewMedia.appendChild(previewImage);
     var previewTitle = document.createElement('div');
     previewTitle.classList.add('ss-scene-preview-title');
     previewTitle.textContent = targetScene.name;
 
-    previewCard.appendChild(previewImage);
+    previewCard.appendChild(previewMedia);
     previewCard.appendChild(previewTitle);
     previewCard.addEventListener('mouseenter', function() {
       if (wrapper.classList.contains('ss-standard-preview-visible')) {
